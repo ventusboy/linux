@@ -43,7 +43,7 @@ int readFile()
 int interperet(char *words[])
 {
     int processcount = 0;
-    if(words[0] == "processcount"){
+    if(strcmp(words[0], "processcount")){
         processcount = atoi(words[1]);
     }
 
@@ -54,42 +54,52 @@ int readLine(char *str)
 {
     
     printf("%s", str);
+    int max = strlen(str) + 1;
 
     char *words[50];
     int i = 0;
     int wordIndex = 0;
-    int buffindex = 0;
+    int buffIndex = 0;
     char *buffer = calloc(255, sizeof(char));
 
-    while (str[i] != '\0')
-    {
-        if (str[i] == ' '){// || str[i + 1] == '\0')
+     while (i < max) {
+        //buffer[buffIndex] = str[i];
+        if (str[i] == ' ' || str[i] == '#' || str[i] =='\0')
         {
 
-            buffer[buffindex] = '\0';
-            words[wordIndex] = calloc(strlen(buffer) + 1, sizeof(char));
+            if (str[i] == '#' && buffIndex == 0){
+                break;
+            }
 
-            strcpy(words[wordIndex], buffer);
+            if(str[i] == ' ' && buffIndex == 0){
+                i++;
+                continue;
+            }
+            
+
+            //break off
+            buffer[buffIndex] = '\0';
+            words[wordIndex] = calloc(strlen(buffer) + 1, sizeof(char));
+            strcpy(words[wordIndex++], buffer);
 
             printf("%s\n", buffer);
-
-            i++;
-            wordIndex++;
-            buffindex = 0;
-
+            buffIndex = 0;
+            /*if(str[i] == '\0'){
+                //buffer[buffIndex + 1] = '\0';
+                break;
+            }*/
             continue;
         }
-        if (str[i + 1] == '\0' || str[i] == '#')
-        {
-            break;
-        }
 
-        buffer[buffindex] = str[i];
-        i++;
-        buffindex++;
+        buffer[buffIndex++] = str[i++];
+        
+
+        //i++;
+        //buffindex++;
     }
 
-    printf("the last word is is %s", words[wordIndex]);
+
+    printf("the last word is %s", words[wordIndex - 1]);
     if(wordIndex > 0){
         interperet(words);
     }
