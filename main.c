@@ -3,8 +3,25 @@
 #include <stdlib.h>
 
 int readFile();
-int interperet();
+struct queue * interperet();
 int readLine();
+
+struct process
+{
+    int timeRemaining;
+    int id;
+};
+
+struct queue
+{
+    int timeBlock;
+    int processCount;
+    struct process *processes;
+};
+
+
+
+
 
 int main()
 {
@@ -40,14 +57,16 @@ int readFile()
     return 0;
 }
 
-int interperet(char *words[])
+struct queue *interperet(char *words[], struct queue *queue)
 {
     int processcount = 0;
-    if(strcmp(words[0], "processcount")){
+    if(!strcmp(words[0], "processcount")){
         processcount = atoi(words[1]);
+        queue->processCount = processcount;
+        queue->processes = calloc(processcount, sizeof(struct process));
     }
 
-    return 0;
+    return queue;
 }
 
 int readLine(char *str)
@@ -63,10 +82,8 @@ int readLine(char *str)
     char *buffer = calloc(255, sizeof(char));
 
      while (i < max) {
-        //buffer[buffIndex] = str[i];
         if (str[i] == ' ' || str[i] == '#' || str[i] =='\0')
         {
-
             if (str[i] == '#' && buffIndex == 0){
                 break;
             }
@@ -76,7 +93,6 @@ int readLine(char *str)
                 continue;
             }
             
-
             //break off
             buffer[buffIndex] = '\0';
             words[wordIndex] = calloc(strlen(buffer) + 1, sizeof(char));
@@ -84,25 +100,22 @@ int readLine(char *str)
 
             printf("%s\n", buffer);
             buffIndex = 0;
-            /*if(str[i] == '\0'){
-                //buffer[buffIndex + 1] = '\0';
-                break;
-            }*/
+
             continue;
         }
 
         buffer[buffIndex++] = str[i++];
-        
-
-        //i++;
-        //buffindex++;
     }
 
 
-    printf("the last word is %s", words[wordIndex - 1]);
+    printf("the last word is %s \n", words[wordIndex - 1]);
+    struct queue *q;
+    q = calloc(1, sizeof(struct queue));
+    q->timeBlock = 1;
     if(wordIndex > 0){
-        interperet(words);
+        interperet(words, q);
     }
+    printf("the process count is %d \n", q->processCount);
 
     free(buffer);
     for (int i = 0; i < wordIndex; i++)
