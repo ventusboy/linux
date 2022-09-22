@@ -95,12 +95,13 @@ void run(struct queue *q){
                 if(q->processes[p].arrival < i && q->processes[p].burst > 0 && (q -> currentProcess == p || q -> currentProcess == -1)){
                     q->processes[p].burst--;
                     q->currentProcess = p;
+                    
                     if(q->processes[p].burst == 0){
                         printf("process %s is complete at time %d\n", q->processes[p].id, i);
                         q->currentProcess = -1;
                         //i--;
-                        //p=0
-                        p = q->processCount;
+                        //p=0;
+                        break;
                     }
                 }
                 p++;
