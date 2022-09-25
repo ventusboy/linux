@@ -105,34 +105,34 @@ void run(struct queue *q)
 
             while (selectedProcess < q->processCount)
             {
-                
-                if (q->processes[selectedProcess].arrival == i)
+                struct process* currentProcess = &(q->processes[selectedProcess]);
+                if (currentProcess->arrival == i)
                 {
                     //if arrived, echo arrived
-                    printf("Time %d: %s arrived\n", i, q->processes[selectedProcess].id);
+                    printf("Time %d: %s arrived\n", i, currentProcess->id);
                 }
 
-                if (q->currentProcess == selectedProcess && q->processes[selectedProcess].burst > 0)
+                if (q->currentProcess == selectedProcess && currentProcess->burst > 0)
                 {
                     // if selected, do work
-                    q->processes[selectedProcess].burst--;
+                    currentProcess->burst--;
                 }
 
-                if (q->currentProcess == selectedProcess && q->processes[selectedProcess].burst == 0)
+                if (q->currentProcess == selectedProcess && currentProcess->burst == 0)
                 {
                     // if finished, echo completed
-                    printf("Time %d: %s finished\n", i, q->processes[selectedProcess].id);
+                    printf("Time %d: %s finished\n", i, currentProcess->id);
                     completed++;
                     q->currentProcess = -1;
                 }
 
-                if (q->processes[selectedProcess].arrival <= i && q->processes[selectedProcess].burst > 0 && (q->currentProcess == -1))
+                if (currentProcess->arrival <= i && currentProcess->burst > 0 && (q->currentProcess == -1))
                 {
                     // if available, select it
-                    printf("Time %d: %s selected (burst %d)\n", i, q->processes[selectedProcess].id, q->processes[selectedProcess].burst);
+                    printf("Time %d: %s selected (burst %d)\n", i, currentProcess->id, currentProcess->burst);
                     q->currentProcess = selectedProcess;
-                    q->processes[selectedProcess].waitTime = i - q->processes[selectedProcess].arrival;
-                    q->processes[selectedProcess].turnAround = q->processes[selectedProcess].waitTime + q->processes[selectedProcess].burst;
+                    currentProcess->waitTime = i - currentProcess->arrival;
+                    currentProcess->turnAround = currentProcess->waitTime + currentProcess->burst;
                 }
 
                 selectedProcess++;
