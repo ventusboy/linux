@@ -54,7 +54,8 @@ int readFile()
     int lineIndex = 0;
 
     char *lines[100];
-    fp = fopen("set1_process.in", "r");
+    //fp = fopen("./asn1-sampleio/set3_process.in", "r");
+    fp = fopen("./asn1-sampleio/set1_process.in", "r");
 
     while (fgets(buff, 255, fp))
     {
@@ -97,7 +98,83 @@ void run(struct queue *q)
 
     int completed = 0;
 
-    if (!strcmp(q->method, methodNames[0]))
+    // fcfs
+    // if (!strcmp(q->method, methodNames[0]))
+    //{
+    for (int i = 0; i < q->runtime + 1; i++)
+    {
+        int selectedProcess = 0;
+
+        //do operations first
+        while (selectedProcess < q->processCount)
+        {
+            if (q->currentProcess == selectedProcess && q->processes[selectedProcess].burst > 0){
+                q->processes[selectedProcess].burst--;
+            }
+            selectedProcess++;
+        }
+        selectedProcess = 0;
+        // default is fcfs
+        while (selectedProcess < q->processCount)
+        {
+            struct process *currentProcess = &(q->processes[selectedProcess]);
+
+            /*if (q->currentProcess == selectedProcess && currentProcess->burst > 0)
+            {
+                // if selected, do work
+                currentProcess->burst--;
+            }*/
+
+            if (currentProcess->arrival == i)
+            {
+                // if arrived, echo arrived
+                printf("Time %d: %s arrived\n", i, currentProcess->id);
+
+                //if sjf
+                if (!strcmp(q->method, methodNames[1]) && currentProcess->burst < q->processes[q->currentProcess].burst){
+                    q->currentProcess = -1;
+                }
+
+            }
+
+
+            if (q->currentProcess == selectedProcess && currentProcess->burst == 0)
+            {
+                // if finished, echo completed
+                printf("Time %d: %s finished\n", i, currentProcess->id);
+                completed++;
+                q->currentProcess = -1;
+                currentProcess->turnAround = i - currentProcess->arrival;
+            }
+
+            if (currentProcess->arrival <= i && currentProcess->burst > 0 && (q->currentProcess == -1))
+            {
+                // if available, select it
+                printf("Time %d: %s selected (burst %d)\n", i, currentProcess->id, currentProcess->burst);
+                q->currentProcess = selectedProcess;
+            }
+            
+            if(currentProcess->burst > 0 && i >= currentProcess->arrival && q->currentProcess != selectedProcess ){
+                //its waiting
+                currentProcess->waitTime++;
+            }
+
+            selectedProcess++;
+        };
+
+        if (i == q->runtime)
+        {
+            printf("Finished at time %d\n\n", i);
+            break;
+        }
+        if (completed == q->processCount && i < q->runtime)
+        {
+            printf("Time %d: IDLE\n", i);
+        }
+    }
+    //}
+
+    /*if (!strcmp(q->method, methodNames[1]))
     {
         for (int i = 0; i < q->runtime + 1; i++)
         {
@@ -105,61 +182,27 @@ void run(struct queue *q)
 
             while (selectedProcess < q->processCount)
             {
-                struct process* currentProcess = &(q->processes[selectedProcess]);
-                if (currentProcess->arrival == i)
-                {
-                    //if arrived, echo arrived
-                    printf("Time %d: %s arrived\n", i, currentProcess->id);
-                }
-
-                if (q->currentProcess == selectedProcess && currentProcess->burst > 0)
-                {
-                    // if selected, do work
-                    currentProcess->burst--;
-                }
-
-                if (q->currentProcess == selectedProcess && currentProcess->burst == 0)
-                {
-                    // if finished, echo completed
-                    printf("Time %d: %s finished\n", i, currentProcess->id);
-                    completed++;
-                    q->currentProcess = -1;
-                }
-
-                if (currentProcess->arrival <= i && currentProcess->burst > 0 && (q->currentProcess == -1))
-                {
-                    // if available, select it
-                    printf("Time %d: %s selected (burst %d)\n", i, currentProcess->id, currentProcess->burst);
-                    q->currentProcess = selectedProcess;
-                    currentProcess->waitTime = i - currentProcess->arrival;
-                    currentProcess->turnAround = currentProcess->waitTime + currentProcess->burst;
-                }
+                struct process *currentProcess = &(q->processes[selectedProcess]);
 
                 selectedProcess++;
-            };
-            if (completed == q->processCount)
-            {
-                printf("Finished at time %d\n\n", i);
-                break;
             }
         }
-        /*    P1 wait 5 turnaround 10
-    P2 wait 5 turnaround 14*/
-        for (int i = 0; i < q->processCount; i++)
-        {
-            printf("%s wait %d turnaround %d\n", q->processes[i].id,  q->processes[i].waitTime, q->processes[i].turnAround);
-        }
+    }*/
 
-        for (int i = 0; i < q->processCount; i++)
+    for (int i = 0; i < q->processCount; i++)
+    {
+        printf("%s wait %d turnaround %d\n", q->processes[i].id, q->processes[i].waitTime, q->processes[i].turnAround);
+    }
+
+    for (int i = 0; i < q->processCount; i++)
+    {
+        if (q->processes[i].burst > 0)
         {
-            if (q->processes[i].burst > 0)
-            {
-                printf("%s wait %d did not complete\n", q->processes[i].id, q->runtime - q->processes[i].arrival);
-            }
-            if (q->runtime <= q->processes[i].arrival)
-            {
-                printf("%s could not be scheduled\n", q->processes[i].id);
-            }
+            printf("%s wait %d did not complete\n", q->processes[i].id, q->runtime - q->processes[i].arrival);
+        }
+        if (q->runtime <= q->processes[i].arrival)
+        {
+            printf("%s could not be scheduled\n", q->processes[i].id);
         }
     }
     return;
