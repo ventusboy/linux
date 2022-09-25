@@ -10,7 +10,8 @@ void run();
 
 struct process
 {
-    int timeRemaining;
+    int waitTime;
+    int turnAround;
     char id[255];
     int burst;
     int arrival;
@@ -104,6 +105,7 @@ void run(struct queue *q)
 
             while (selectedProcess < q->processCount)
             {
+                
                 if (q->processes[selectedProcess].arrival == i)
                 {
                     //if arrived, echo arrived
@@ -129,16 +131,25 @@ void run(struct queue *q)
                     // if available, select it
                     printf("Time %d: %s selected (burst %d)\n", i, q->processes[selectedProcess].id, q->processes[selectedProcess].burst);
                     q->currentProcess = selectedProcess;
+                    q->processes[selectedProcess].waitTime = i - q->processes[selectedProcess].arrival;
+                    q->processes[selectedProcess].turnAround = q->processes[selectedProcess].waitTime + q->processes[selectedProcess].burst;
                 }
 
                 selectedProcess++;
             };
             if (completed == q->processCount)
             {
-                printf("Finished at time %d\n", i);
+                printf("Finished at time %d\n\n", i);
                 break;
             }
         }
+        /*    P1 wait 5 turnaround 10
+    P2 wait 5 turnaround 14*/
+        for (int i = 0; i < q->processCount; i++)
+        {
+            printf("%s wait %d turnaround %d\n", q->processes[i].id,  q->processes[i].waitTime, q->processes[i].turnAround);
+        }
+
         for (int i = 0; i < q->processCount; i++)
         {
             if (q->processes[i].burst > 0)
