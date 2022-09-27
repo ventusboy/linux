@@ -2,8 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-int readFile();
-// struct queue * interperet();
+int readFile(char *filename);
 void interperet();
 int readLine();
 void run();
@@ -29,65 +28,58 @@ struct queue
 };
 
 char *methodNames[3] = {
-    "First Come First Serve",
+    "First Come First Served",
     "Shortest Job First (Pre)",
-    "Round-Robin"};
-
-/*enum methods {
-    fcfs,
-    sjf,
-    rr
-};*/
+    "Round-Robin"
+};
 
 int main()
 {
-    // printf("\nloading instructions\n\n");
-    readFile();
+    char *filename = calloc(255, sizeof(char));
+    //sprintf(filename, "./asn1-sampleio/set%d_process.in", i);
+
+    sprintf(filename, "process.in");
+    readFile(filename);
+    free(filename);
     return 0;
 }
 
-int readFile()
+int readFile(char *filename)
 {
     FILE *fp;
-
     char buff[255];
-    int count = 0;
-    int lineIndex = 0;
 
-    char *lines[100];
-    // fp = fopen("./asn1-sampleio/set3_process.in", "r");
-    // fp = fopen("./asn1-sampleio/set1_process.in", "r");
-    fp = fopen("./asn1-sampleio/set4_process.in", "r");
-
-    while (fgets(buff, 255, fp))
-    {
-        lines[lineIndex] = calloc(strlen(buff) + 1, sizeof(char));
-        strcpy(lines[lineIndex], buff);
-        lineIndex++;
-    }
+    fp = fopen(filename, "r");
 
     struct queue *q;
     q = calloc(1, sizeof(struct queue));
-    for (int i = 0; i < lineIndex; i++)
+
+    while (fgets(buff, 255, fp))
     {
-        readLine(lines[i], q);
+        readLine(buff, q);
     }
 
     run(q);
 
-    int fclose(FILE * fp);
+    fclose(fp);
     return 0;
 }
 
 void run(struct queue *q)
 {
-    printf("%d processes\n", q->processCount);
-    printf("Using %s\n", q->method);
+
+    FILE *wfp;
+    char buff[255];
+
+    wfp = fopen("process.out", "w");
+
+    fprintf(wfp,"%d processes\n", q->processCount);
+    fprintf(wfp,"Using %s\n", q->method);
     if (!strcmp(q->method, methodNames[2]) && q->quantum)
     {
-        printf("Quantum %d\n", q->quantum);
+        fprintf(wfp,"Quantum %d\n", q->quantum);
     }
-    printf("\n");
+    fprintf(wfp,"\n");
 
     int completed = 0;
     int quantumCount = 0;
@@ -98,18 +90,13 @@ void run(struct queue *q)
         int prevSelectedProcess = q->currentProcess;
         int quantumCheck = 0;
 
-        // do operations first
-
+        // do arrivals first
         for (int whoArrived = 0; whoArrived < q->processCount; whoArrived++)
         {
             struct process *currentProcess = &(q->processes[whoArrived]);
             if (currentProcess->arrival == i)
             {
-                printf("Time %d: %s arrived\n", i, currentProcess->id);
-                /*if (!strcmp(q->method, methodNames[1]) && q->currentProcess > -1 && currentProcess->burst < q->processes[q->currentProcess].burst)
-                {
-                    q->currentProcess = -1;
-                }*/
+                fprintf(wfp,"Time %d: %s arrived\n", i, currentProcess->id);
             }
         }
 
@@ -120,14 +107,14 @@ void run(struct queue *q)
             quantumCount++;
         }
 
-        // finish
+        // finishes
         for (int whoFinished = 0; whoFinished < q->processCount; whoFinished++)
         {
             struct process *currentProcess = &(q->processes[whoFinished]);
             if (q->currentProcess == whoFinished && currentProcess->burst == 0)
             {
                 // if finished, echo completed
-                printf("Time %d: %s finished\n", i, currentProcess->id);
+                fprintf(wfp,"Time %d: %s finished\n", i, currentProcess->id);
                 completed++;
                 q->currentProcess = -1;
                 currentProcess->turnAround = i - currentProcess->arrival;
@@ -174,7 +161,6 @@ void run(struct queue *q)
                     q->currentProcess = k;
                 }
             }
-            //q->currentProcess = shortest;
         }
 
         // fcfs code
@@ -196,7 +182,6 @@ void run(struct queue *q)
         {
             if (q->processes[t].burst > 0 && i >= q->processes[t].arrival && q->currentProcess != t)
             {
-                // its waiting
                 q->processes[t].waitTime++;
             }
         }
@@ -204,37 +189,38 @@ void run(struct queue *q)
         if (prevSelectedProcess != q->currentProcess && q->currentProcess != -1)
         {
             quantumCount = 0;
-            printf("Time %d: %s selected (burst %d)\n", i, q->processes[q->currentProcess].id, q->processes[q->currentProcess].burst);
+            fprintf(wfp,"Time %d: %s selected (burst %d)\n", i, q->processes[q->currentProcess].id, q->processes[q->currentProcess].burst);
         }
 
         if (i == q->runtime)
         {
-            printf("Finished at time %d\n\n", i);
+            fprintf(wfp,"Finished at time %d\n\n", i);
             break;
         }
 
         if (q->currentProcess == -1 && i < q->runtime)
         {
-            printf("Time %d: IDLE\n", i);
+            fprintf(wfp,"Time %d: IDLE\n", i);
         }
     }
 
     for (int i = 0; i < q->processCount; i++)
     {
-        printf("%s wait %d turnaround %d\n", q->processes[i].id, q->processes[i].waitTime, q->processes[i].turnAround);
+        fprintf(wfp,"%s wait %d turnaround %d\n", q->processes[i].id, q->processes[i].waitTime, q->processes[i].turnAround);
     }
 
     for (int i = 0; i < q->processCount; i++)
     {
         if (q->processes[i].burst > 0)
         {
-            printf("%s wait %d did not complete\n", q->processes[i].id, q->runtime - q->processes[i].arrival);
+            fprintf(wfp,"%s wait %d did not complete\n", q->processes[i].id, q->runtime - q->processes[i].arrival);
         }
         if (q->runtime <= q->processes[i].arrival)
         {
-            printf("%s could not be scheduled\n", q->processes[i].id);
+            fprintf(wfp,"%s could not be scheduled\n", q->processes[i].id);
         }
     }
+    fclose(wfp);
     return;
 }
 
@@ -242,7 +228,7 @@ void interperet(char *words[], struct queue *queue)
 {
     int processcount = 0;
     if (!strcmp(words[0], "processcount"))
-    {
+    {   
         processcount = atoi(words[1]);
         queue->processCount = processcount;
         queue->processCountIndex = 0;
@@ -277,7 +263,6 @@ void interperet(char *words[], struct queue *queue)
 
     if (!strcmp(words[0], "process"))
     {
-        // printf("processes are attempted");
         queue->processes[queue->processCountIndex].arrival = atoi(words[4]);
         strcpy(queue->processes[queue->processCountIndex].id, words[2]);
         queue->processes[queue->processCountIndex++].burst = atoi(words[6]);
@@ -290,7 +275,6 @@ void interperet(char *words[], struct queue *queue)
 
     if (!strcmp(words[0], "end"))
     {
-        // strcpy(queue -> method, words[1]);
         // do nothing
     }
 
@@ -300,10 +284,9 @@ void interperet(char *words[], struct queue *queue)
 int readLine(char *str, struct queue *q)
 {
 
-    // printf("%s", str);
     int max = strlen(str) + 1;
 
-    char *words[50];
+    char *words[255];
     int i = 0;
     int wordIndex = 0;
     int buffIndex = 0;
@@ -329,7 +312,6 @@ int readLine(char *str, struct queue *q)
             words[wordIndex] = calloc(strlen(buffer) + 1, sizeof(char));
             strcpy(words[wordIndex++], buffer);
 
-            // printf("%s\n", buffer);
             buffIndex = 0;
 
             if (str[i] == '\0')
