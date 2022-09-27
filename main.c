@@ -73,13 +73,13 @@ void run(struct queue *q)
 
     wfp = fopen("process.out", "w");
 
-    fprintf(wfp,"%d processes\n", q->processCount);
-    fprintf(wfp,"Using %s\n", q->method);
+    fprintf(wfp,"%d processes\r\n", q->processCount);
+    fprintf(wfp,"Using %s\r\n", q->method);
     if (!strcmp(q->method, methodNames[2]) && q->quantum)
     {
-        fprintf(wfp,"Quantum %d\n", q->quantum);
+        fprintf(wfp,"Quantum %d\r\n", q->quantum);
     }
-    fprintf(wfp,"\n");
+    fprintf(wfp,"\r\n");
 
     int completed = 0;
     int quantumCount = 0;
@@ -96,7 +96,7 @@ void run(struct queue *q)
             struct process *currentProcess = &(q->processes[whoArrived]);
             if (currentProcess->arrival == i)
             {
-                fprintf(wfp,"Time %d: %s arrived\n", i, currentProcess->id);
+                fprintf(wfp,"Time %d: %s arrived\r\n", i, currentProcess->id);
             }
         }
 
@@ -114,7 +114,7 @@ void run(struct queue *q)
             if (q->currentProcess == whoFinished && currentProcess->burst == 0)
             {
                 // if finished, echo completed
-                fprintf(wfp,"Time %d: %s finished\n", i, currentProcess->id);
+                fprintf(wfp,"Time %d: %s finished\r\n", i, currentProcess->id);
                 completed++;
                 q->currentProcess = -1;
                 currentProcess->turnAround = i - currentProcess->arrival;
@@ -189,35 +189,35 @@ void run(struct queue *q)
         if (prevSelectedProcess != q->currentProcess && q->currentProcess != -1)
         {
             quantumCount = 0;
-            fprintf(wfp,"Time %d: %s selected (burst %d)\n", i, q->processes[q->currentProcess].id, q->processes[q->currentProcess].burst);
+            fprintf(wfp,"Time %d: %s selected (burst %d)\r\n", i, q->processes[q->currentProcess].id, q->processes[q->currentProcess].burst);
         }
 
         if (i == q->runtime)
         {
-            fprintf(wfp,"Finished at time %d\n\n", i);
+            fprintf(wfp,"Finished at time %d\r\n\r\n", i);
             break;
         }
 
         if (q->currentProcess == -1 && i < q->runtime)
         {
-            fprintf(wfp,"Time %d: IDLE\n", i);
+            fprintf(wfp,"Time %d: IDLE\r\n", i);
         }
     }
 
     for (int i = 0; i < q->processCount; i++)
     {
-        fprintf(wfp,"%s wait %d turnaround %d\n", q->processes[i].id, q->processes[i].waitTime, q->processes[i].turnAround);
+        fprintf(wfp,"%s wait %d turnaround %d\r\n", q->processes[i].id, q->processes[i].waitTime, q->processes[i].turnAround);
     }
 
     for (int i = 0; i < q->processCount; i++)
     {
         if (q->processes[i].burst > 0)
         {
-            fprintf(wfp,"%s wait %d did not complete\n", q->processes[i].id, q->runtime - q->processes[i].arrival);
+            fprintf(wfp,"%s wait %d did not complete\r\n", q->processes[i].id, q->runtime - q->processes[i].arrival);
         }
         if (q->runtime <= q->processes[i].arrival)
         {
-            fprintf(wfp,"%s could not be scheduled\n", q->processes[i].id);
+            fprintf(wfp,"%s could not be scheduled\r\n", q->processes[i].id);
         }
     }
     fclose(wfp);
