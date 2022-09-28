@@ -6,6 +6,7 @@ int readFile(char *filename);
 void interperet();
 int readLine();
 void run();
+int test();
 
 struct process
 {
@@ -30,14 +31,23 @@ struct queue
 char *methodNames[3] = {
     "First Come First Served",
     "Shortest Job First (Pre)",
-    "Round-Robin"};
+    "Round-Robin"
+};
 
 int main()
 {
+    char *filename = calloc(255, sizeof(char));
+
+    sprintf(filename, "process.in");
+    readFile(filename);
+    free(filename);
+    //test();
+}
+
+int test()
+{
     for (int i = 1; i < 5; i++)
     {
-        /* code */
-
         char *filename = calloc(255, sizeof(char));
         sprintf(filename, "./asn1-sampleio/set%d_process.in", i);
 
@@ -58,11 +68,12 @@ int main()
         {
             fgets(buff2, 255, fp2);
             int check = strcmp(buff2, buff);
-            if(check != 0){
+            if (check != 0)
+            {
                 printf("error check file %d\n", i);
                 break;
             }
-            printf("%s %s", buff, buff2);
+            // printf("%s %s", buff, buff2);
         }
     }
 
