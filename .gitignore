@@ -1,3 +1,4 @@
 crawl.sh
 .vscode/*
 *.exe
+.vscode/tasks.json
