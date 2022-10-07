@@ -7,6 +7,9 @@ void interperet();
 int readLine();
 void run();
 int test();
+int push();
+int pushToFront();
+int shift();
 
 struct process
 {
@@ -31,8 +34,44 @@ struct queue
 char *methodNames[3] = {
     "First Come First Served",
     "Shortest Job First (Pre)",
-    "Round-Robin"
-};
+    "Round-Robin"};
+
+int push(int *array, int toPush, int size)
+{
+    int count = 0;
+    while (count < size)
+    {
+        if (array[count] == -1)
+        {
+            array[count] = toPush;
+            break;
+        }
+        count++;
+    }
+}
+
+int pushToFront(int *array, int toPush, int size)
+{
+    int count = size;
+    while (count > 0)
+    {
+        array[count] = array[count - 1];
+        count--;
+    }
+    array[0] = toPush;
+}
+
+int shift(int *array, int size)
+{
+    int toReturn = array[0];
+    int count = 0;
+    while (count < size)
+    {
+        array[count] = array[count + 1];
+        count++;
+    }
+    return toReturn;
+}
 
 int main()
 {
@@ -41,7 +80,8 @@ int main()
     sprintf(filename, "process.in");
     readFile(filename);
     free(filename);
-    //test();
+    test();
+    return 0;
 }
 
 int test()
@@ -63,8 +103,8 @@ int test()
         FILE *fp1;
         FILE *fp2;
         fp1 = fopen(temp, "r");
-        fp2 = fopen("process.out", "r");
-        while (fgets(buff, 255, fp1))
+        fp2 = fopen("processes.out", "r");
+        while (fp1 && fgets(buff, 255, fp1))
         {
             fgets(buff2, 255, fp2);
             int check = strcmp(buff2, buff);
@@ -103,13 +143,13 @@ int readFile(char *filename)
 
 void run(struct queue *q)
 {
-
     FILE *wfp;
     char buff[255];
 
-    wfp = fopen("process.out", "w");
+    wfp = fopen("processes.out", "w");
 
     fprintf(wfp, "%d processes\n", q->processCount);
+    // printf("%d processes\n", q->processCount);
     fprintf(wfp, "Using %s\n", q->method);
     if (!strcmp(q->method, methodNames[2]) && q->quantum)
     {
@@ -120,6 +160,13 @@ void run(struct queue *q)
     int completed = 0;
     int quantumCount = 0;
     q->currentProcess = -1;
+
+    int readyQueue[q->processCount + 1];
+    int readyIndex = 0;
+    for (int i = 0; i < q->processCount + 1; i++)
+    {
+        readyQueue[i] = -1;
+    }
 
     for (int i = 0; i < q->runtime + 1; i++)
     {
@@ -133,6 +180,8 @@ void run(struct queue *q)
             if (currentProcess->arrival == i)
             {
                 fprintf(wfp, "Time %d: %s arrived\n", i, currentProcess->id);
+                int count = readyIndex++;
+                push(&readyQueue[0], whoArrived, readyIndex);
             }
         }
 
@@ -160,19 +209,25 @@ void run(struct queue *q)
         // rr code
         if (q->quantum && quantumCount % q->quantum == 0 || q->currentProcess == -1)
         {
-            int count = 1;
-            while (count < q->processCount + 1)
-            {
-                int processToCheck = (q->currentProcess + count) % q->processCount;
-                if (q->processes[processToCheck].arrival <= i && q->processes[processToCheck].burst > 0)
-                {
-                    q->currentProcess = processToCheck;
-                    prevSelectedProcess = -1;
-                    break;
-                }
-                count++;
+            if(q->currentProcess > -1){
+                push(&readyQueue[0], q->currentProcess, readyIndex);
             }
+            q->currentProcess = shift(&readyQueue[0], readyIndex);
+
+            int count = 0;
+            //printf("%d is selected rr\n", q->currentProcess);
+            //printf("%d is prev rr\n", prevSelectedProcess);
+            prevSelectedProcess = -1;
         }
+        //printf("time %d, current process %d, last process: %d\n", i, q->currentProcess, prevSelectedProcess);
+        /*for (int i = 0; i < q->processCount; i++)
+        {
+            if(readyQueue[i] > -1){
+                printf("%d[%s]\n", i, q->processes[readyQueue[i]].id);
+            } else {
+                printf("%d[%s]\n", i, "free");
+            }
+        }*/
 
         // sjf code
         if (!strcmp(q->method, methodNames[1]))

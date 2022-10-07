@@ -1,0 +1,10 @@
+processcount 5
+runfor 30
+use rr
+quantum 2
+process name P1 arrival 0 burst 8
+process name P2 arrival 4 burst 3
+process name P3 arrival 7 burst 5
+process name P4 arrival 8 burst 6
+process name P5 arrival 12 burst 5
+end
